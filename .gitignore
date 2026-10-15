@@ -1,0 +1,50 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment Variables & Credentials
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+credentials/
+secrets/
+
+# Database Local & Dumps (Mencegah kebocoran file database lokal & dump)
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+*.dump
+*.bak
+*.backup
+
+# Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Logs & Debug Artefacts & Diagnostics
+*.log
+logs/
+scratch/
+tes.py
+cek_model.py
+assets/Gemini_Generated_Image_*.jpg
+
+# File data sensitif atau backup mentah
+# Catatan: File data sintetis yang telah diverifikasi aman
+# DAPAT disertakan secara eksplisit ke dalam repositori dengan pengecualian '!' jika diperlukan.
+data/raw/
+data/*_confidential.*
+data/*_real.*
+data/*_backup.*
+!data/.gitkeep
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
