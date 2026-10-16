@@ -28,7 +28,7 @@ def create_schema(conn: sqlite3.Connection):
 
     # 1. Tabel Pengguna (Autentikasi Demo)
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS md_user (
+    CREATE TABLE IF NOT EXISTS demo_users (
         id_user INTEGER PRIMARY KEY,
         nama_lengkap TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
@@ -38,7 +38,7 @@ def create_schema(conn: sqlite3.Connection):
 
     # 2. Tabel Master Kategori Layanan Klinik
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS md_kategoriklinik (
+    CREATE TABLE IF NOT EXISTS demo_service_categories (
         id_kategoriKlinik INTEGER PRIMARY KEY,
         kategoriKlinik TEXT NOT NULL,
         target REAL NOT NULL DEFAULT 0
@@ -47,17 +47,17 @@ def create_schema(conn: sqlite3.Connection):
 
     # 3. Tabel Master Layanan Klinik
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS md_layananklinik (
+    CREATE TABLE IF NOT EXISTS demo_services (
         kode TEXT PRIMARY KEY,
         nama_layanan TEXT NOT NULL,
         id_kategori INTEGER NOT NULL,
-        FOREIGN KEY (id_kategori) REFERENCES md_kategoriklinik(id_kategoriKlinik)
+        FOREIGN KEY (id_kategori) REFERENCES demo_service_categories(id_kategoriKlinik)
     );
     """)
 
     # 4. Tabel Transaksi Pendaftaran / Kunjungan Pasien
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS md_pendaftaran (
+    CREATE TABLE IF NOT EXISTS demo_visits (
         no_registrasi TEXT PRIMARY KEY,
         no_rm TEXT NOT NULL,
         waktu_daftar TEXT NOT NULL,
@@ -68,42 +68,42 @@ def create_schema(conn: sqlite3.Connection):
 
     # 5. Tabel Detail Layanan Pendaftaran
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS md_pendaftaran_layanan (
+    CREATE TABLE IF NOT EXISTS demo_visit_services (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         kode TEXT NOT NULL,
         kodeLayanan TEXT NOT NULL,
         layanan TEXT NOT NULL,
         subtotal REAL NOT NULL DEFAULT 0,
-        FOREIGN KEY (kode) REFERENCES md_pendaftaran(no_registrasi),
-        FOREIGN KEY (kodeLayanan) REFERENCES md_layananklinik(kode)
+        FOREIGN KEY (kode) REFERENCES demo_visits(no_registrasi),
+        FOREIGN KEY (kodeLayanan) REFERENCES demo_services(kode)
     );
     """)
 
     # 6. Tabel Diagnosis / Keluhan Pasien (ICD)
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS md_pendaftaran_icd (
+    CREATE TABLE IF NOT EXISTS demo_visit_diagnoses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         kode TEXT NOT NULL,
         penyakit TEXT NOT NULL,
-        FOREIGN KEY (kode) REFERENCES md_pendaftaran(no_registrasi)
+        FOREIGN KEY (kode) REFERENCES demo_visits(no_registrasi)
     );
     """)
 
     # 7. Tabel Resep / Produk Farmasi
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS md_pendaftaran_resep (
+    CREATE TABLE IF NOT EXISTS demo_prescriptions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         kode TEXT NOT NULL,
         nama_produk TEXT NOT NULL,
         qty INTEGER NOT NULL DEFAULT 1,
         subtotal REAL NOT NULL DEFAULT 0,
-        FOREIGN KEY (kode) REFERENCES md_pendaftaran(no_registrasi)
+        FOREIGN KEY (kode) REFERENCES demo_visits(no_registrasi)
     );
     """)
 
     # 8. Tabel Responden IKM (Indeks Kepuasan Masyarakat)
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS an_ikm_responden (
+    CREATE TABLE IF NOT EXISTS demo_satisfaction_respondents (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         tanggal TEXT NOT NULL,
         jenis_layanan TEXT NOT NULL,
@@ -131,7 +131,7 @@ def create_schema(conn: sqlite3.Connection):
 
     # 9. Tabel Ringkasan Unsur IKM
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS an_ikm_unsur (
+    CREATE TABLE IF NOT EXISTS demo_satisfaction_elements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         unsur TEXT NOT NULL,
         total_nilai REAL NOT NULL,
@@ -141,7 +141,7 @@ def create_schema(conn: sqlite3.Connection):
 
     # 10. Tabel Ringkasan Global IKM
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS an_ikm_summary (
+    CREATE TABLE IF NOT EXISTS demo_satisfaction_summary (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         jumlah_responden INTEGER NOT NULL,
         nilai_ikm REAL NOT NULL,
@@ -170,9 +170,9 @@ def generate_synthetic_dataset(db_path: str, seed: int = 42):
 
     # Bersihkan tabel jika dijalankan ulang
     for table in [
-        "an_ikm_summary", "an_ikm_unsur", "an_ikm_responden",
-        "md_pendaftaran_resep", "md_pendaftaran_icd", "md_pendaftaran_layanan",
-        "md_pendaftaran", "md_layananklinik", "md_kategoriklinik", "md_user"
+        "demo_satisfaction_summary", "demo_satisfaction_elements", "demo_satisfaction_respondents",
+        "demo_prescriptions", "demo_visit_diagnoses", "demo_visit_services",
+        "demo_visits", "demo_services", "demo_service_categories", "demo_users"
     ]:
         cursor.execute(f"DELETE FROM {table};")
 
@@ -183,7 +183,7 @@ def generate_synthetic_dataset(db_path: str, seed: int = 42):
         (1, "dr. Hendra Pratama (Demo)", "demo@klinikpratama.com", hashlib.md5("demo123".encode()).hexdigest()),
         (2, "Manajer Operasional (Demo)", "admin@klinikpratama.com", hashlib.md5("admin123".encode()).hexdigest()),
     ]
-    cursor.executemany("INSERT INTO md_user (id_user, nama_lengkap, email, password) VALUES (?, ?, ?, ?)", users_data)
+    cursor.executemany("INSERT INTO demo_users (id_user, nama_lengkap, email, password) VALUES (?, ?, ?, ?)", users_data)
 
     # =========================================================================
     # 2. GENERATE KATEGORI & MASTER LAYANAN
@@ -196,7 +196,7 @@ def generate_synthetic_dataset(db_path: str, seed: int = 42):
         (5, "Laboratorium Klinis", 20_000_000.0),
         (6, "Fisioterapi & Rehab", 18_000_000.0),
     ]
-    cursor.executemany("INSERT INTO md_kategoriklinik (id_kategoriKlinik, kategoriKlinik, target) VALUES (?, ?, ?)", categories)
+    cursor.executemany("INSERT INTO demo_service_categories (id_kategoriKlinik, kategoriKlinik, target) VALUES (?, ?, ?)", categories)
 
     services_master = [
         # Poli Umum
@@ -231,7 +231,7 @@ def generate_synthetic_dataset(db_path: str, seed: int = 42):
     ]
 
     for kode, nama, cat_id, _, _ in services_master:
-        cursor.execute("INSERT INTO md_layananklinik (kode, nama_layanan, id_kategori) VALUES (?, ?, ?)", (kode, nama, cat_id))
+        cursor.execute("INSERT INTO demo_services (kode, nama_layanan, id_kategori) VALUES (?, ?, ?)", (kode, nama, cat_id))
 
     # Master Penyakit Fiktif (ICD-10 Populer)
     penyakit_list = [
@@ -375,10 +375,10 @@ def generate_synthetic_dataset(db_path: str, seed: int = 42):
         current_date += timedelta(days=1)
 
     # Masukkan data registrasi dan detail
-    cursor.executemany("INSERT INTO md_pendaftaran VALUES (?, ?, ?, ?, ?)", pendaftaran_rows)
-    cursor.executemany("INSERT INTO md_pendaftaran_layanan (kode, kodeLayanan, layanan, subtotal) VALUES (?, ?, ?, ?)", layanan_rows)
-    cursor.executemany("INSERT INTO md_pendaftaran_icd (kode, penyakit) VALUES (?, ?)", icd_rows)
-    cursor.executemany("INSERT INTO md_pendaftaran_resep (kode, nama_produk, qty, subtotal) VALUES (?, ?, ?, ?)", resep_rows)
+    cursor.executemany("INSERT INTO demo_visits VALUES (?, ?, ?, ?, ?)", pendaftaran_rows)
+    cursor.executemany("INSERT INTO demo_visit_services (kode, kodeLayanan, layanan, subtotal) VALUES (?, ?, ?, ?)", layanan_rows)
+    cursor.executemany("INSERT INTO demo_visit_diagnoses (kode, penyakit) VALUES (?, ?)", icd_rows)
+    cursor.executemany("INSERT INTO demo_prescriptions (kode, nama_produk, qty, subtotal) VALUES (?, ?, ?, ?)", resep_rows)
 
     # =========================================================================
     # 4. GENERATE SURVEI IKM (Indeks Kepuasan Masyarakat)
@@ -423,28 +423,28 @@ def generate_synthetic_dataset(db_path: str, seed: int = 42):
         ))
 
     cursor.executemany("""
-    INSERT INTO an_ikm_responden (
+    INSERT INTO demo_satisfaction_respondents (
         tanggal, jenis_layanan, nama_responden, usia, jenis_kelamin,
         q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, responden_rows)
 
-    # Hitung data agregat an_ikm_unsur
+    # Hitung data agregat demo_satisfaction_elements
     unsur_aggregates = []
     for q_idx in range(1, 17):
         col_name = f"q{q_idx}"
-        cursor.execute(f"SELECT SUM({col_name}), AVG({col_name}) FROM an_ikm_responden;")
+        cursor.execute(f"SELECT SUM({col_name}), AVG({col_name}) FROM demo_satisfaction_respondents;")
         tot, avg = cursor.fetchone()
         unsur_aggregates.append((f"Q{q_idx}", float(tot), round(float(avg), 2)))
 
-    cursor.executemany("INSERT INTO an_ikm_unsur (unsur, total_nilai, rata_rata) VALUES (?, ?, ?)", unsur_aggregates)
+    cursor.executemany("INSERT INTO demo_satisfaction_elements (unsur, total_nilai, rata_rata) VALUES (?, ?, ?)", unsur_aggregates)
 
-    # Hitung data an_ikm_summary
+    # Hitung data demo_satisfaction_summary
     cursor.execute("""
     SELECT 
         COUNT(*),
         AVG((q1+q2+q3+q4+q5+q6+q7+q8+q9+q10+q11+q12+q13+q14+q15+q16) / 16.0)
-    FROM an_ikm_responden;
+    FROM demo_satisfaction_respondents;
     """)
     n_resp, avg_global = cursor.fetchone()
     ikm_konversi = avg_global * 25.0
@@ -459,7 +459,7 @@ def generate_synthetic_dataset(db_path: str, seed: int = 42):
         mutu, kategori = "D", "Tidak Baik"
 
     cursor.execute("""
-    INSERT INTO an_ikm_summary (jumlah_responden, nilai_ikm, ikm_konversi, mutu, kategori)
+    INSERT INTO demo_satisfaction_summary (jumlah_responden, nilai_ikm, ikm_konversi, mutu, kategori)
     VALUES (?, ?, ?, ?, ?)
     """, (n_resp, round(avg_global, 3), round(ikm_konversi, 2), mutu, kategori))
 
@@ -467,16 +467,16 @@ def generate_synthetic_dataset(db_path: str, seed: int = 42):
     conn.close()
 
     return {
-        "md_user": len(users_data),
-        "md_kategoriklinik": len(categories),
-        "md_layananklinik": len(services_master),
-        "md_pendaftaran": len(pendaftaran_rows),
-        "md_pendaftaran_layanan": len(layanan_rows),
-        "md_pendaftaran_icd": len(icd_rows),
-        "md_pendaftaran_resep": len(resep_rows),
-        "an_ikm_responden": len(responden_rows),
-        "an_ikm_unsur": len(unsur_aggregates),
-        "an_ikm_summary": 1,
+        "demo_users": len(users_data),
+        "demo_service_categories": len(categories),
+        "demo_services": len(services_master),
+        "demo_visits": len(pendaftaran_rows),
+        "demo_visit_services": len(layanan_rows),
+        "demo_visit_diagnoses": len(icd_rows),
+        "demo_prescriptions": len(resep_rows),
+        "demo_satisfaction_respondents": len(responden_rows),
+        "demo_satisfaction_elements": len(unsur_aggregates),
+        "demo_satisfaction_summary": 1,
     }
 
 

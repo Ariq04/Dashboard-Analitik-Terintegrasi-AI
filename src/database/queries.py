@@ -1,7 +1,7 @@
 def get_pendapatan_bulanan_query():
     """
     Query Tren Pendapatan Bulanan (Diperbarui).
-    Sumber: md_pendaftaran
+    Sumber: demo_visits
     Kolom: waktu_daftar, total
     """
     return """
@@ -9,7 +9,7 @@ def get_pendapatan_bulanan_query():
         YEAR(waktu_daftar) as tahun,
         MONTH(waktu_daftar) as bulan,
         SUM(total) as total_pendapatan
-    FROM md_pendaftaran
+    FROM demo_visits
     WHERE total IS NOT NULL
     GROUP BY YEAR(waktu_daftar), MONTH(waktu_daftar)
     ORDER BY tahun ASC, bulan ASC;
@@ -25,7 +25,7 @@ def get_growth_drivers_query():
         DATE_FORMAT(waktu_daftar, '%%Y-%%m') as periode,
         COUNT(no_registrasi) as jumlah_kunjungan,
         SUM(total) as total_pendapatan
-    FROM md_pendaftaran
+    FROM demo_visits
     WHERE total IS NOT NULL
     GROUP BY periode
     ORDER BY periode ASC;
@@ -45,8 +45,8 @@ def get_trend_kontribusi_query():
             ELSE 'Satuan'
         END as tipe_layanan,
         SUM(l.subtotal) as total_pendapatan
-    FROM md_pendaftaran_layanan l
-    JOIN md_pendaftaran p ON l.kode = p.no_registrasi
+    FROM demo_visit_services l
+    JOIN demo_visits p ON l.kode = p.no_registrasi
     WHERE l.subtotal IS NOT NULL
     GROUP BY periode, tipe_layanan
     ORDER BY periode ASC;
@@ -65,7 +65,7 @@ def get_top_10_layanan_query():
             ELSE 'Satuan'
         END as kategori,
         SUM(subtotal) as total_pendapatan -- SUDAH DIPERBAIKI (total -> subtotal)
-    FROM md_pendaftaran_layanan
+    FROM demo_visit_services
     GROUP BY layanan, kategori
     ORDER BY total_pendapatan DESC;
     """
@@ -80,7 +80,7 @@ def get_pasien_baru_lama_query():
         SELECT 
             no_rm, 
             MIN(waktu_daftar) as first_visit_date
-        FROM md_pendaftaran
+        FROM demo_visits
         GROUP BY no_rm
     )
     SELECT 
@@ -90,7 +90,7 @@ def get_pasien_baru_lama_query():
             ELSE 'Pasien Lama'
         END as status_pasien,
         COUNT(DISTINCT p.no_rm) as jumlah_pasien
-    FROM md_pendaftaran p
+    FROM demo_visits p
     JOIN FirstVisit fv ON p.no_rm = fv.no_rm
     GROUP BY bulan, status_pasien
     ORDER BY bulan ASC;
@@ -107,7 +107,7 @@ def get_heatmap_kunjungan_query():
         MONTH(waktu_daftar) as bulan,
         HOUR(waktu_daftar) as jam,
         COUNT(no_registrasi) as jumlah_kunjungan
-    FROM md_pendaftaran
+    FROM demo_visits
     GROUP BY tahun, bulan, jam
     ORDER BY tahun, bulan, jam;
     """
@@ -121,7 +121,7 @@ def get_rata_rata_kunjungan_query():
         DATE_FORMAT(waktu_daftar, '%%Y-%%m') as bulan,
         COUNT(no_registrasi) as total_kunjungan,
         COUNT(DISTINCT no_rm) as total_pasien_unik
-    FROM md_pendaftaran
+    FROM demo_visits
     GROUP BY bulan
     ORDER BY bulan ASC;
     """
@@ -131,8 +131,8 @@ def get_top_penyakit_query():
     SELECT 
         p.waktu_daftar,
         i.penyakit AS nama_penyakit  -- PENTING: Tambahkan 'AS nama_penyakit' di sini!
-    FROM md_pendaftaran_icd i
-    JOIN md_pendaftaran p ON i.kode = p.no_registrasi
+    FROM demo_visit_diagnoses i
+    JOIN demo_visits p ON i.kode = p.no_registrasi
     WHERE i.penyakit IS NOT NULL
     ORDER BY p.waktu_daftar DESC;
     """
@@ -146,8 +146,8 @@ def get_top_produk_query():
         r.nama_produk as nama_obat,
         SUM(r.qty) as total_terjual,      -- Untuk Analisis Stok
         SUM(r.subtotal) as total_pendapatan -- Untuk Analisis Omzet
-    FROM md_pendaftaran_resep r
-    JOIN md_pendaftaran p ON r.kode = p.no_registrasi
+    FROM demo_prescriptions r
+    JOIN demo_visits p ON r.kode = p.no_registrasi
     GROUP BY tanggal, r.nama_produk
     ORDER BY total_terjual DESC;
     """
@@ -155,7 +155,7 @@ def get_top_produk_query():
 def get_realisasi_pendapatan_per_kategori_query():
     """
     Menghitung TOTAL PENDAPATAN (Rp) per bulan per kategori.
-    Update: Mengambil TARGET dari database (md_kategoriklinik).
+    Update: Mengambil TARGET dari database (demo_service_categories).
     """
     return """
     SELECT 
@@ -164,21 +164,21 @@ def get_realisasi_pendapatan_per_kategori_query():
         -- Ambil Nama Kategori
         COALESCE(k.kategoriKlinik, 'Lainnya') as kategori,
         
-        -- Ambil Taorget Bulanan dari DB (Jika null anggap 0)
+        -- Ambil Target Bulanan dari DB (Jika null anggap 0)
         COALESCE(k.target, 0) as target_bulanan,
         
         SUM(l.subtotal) as aktual_pendapatan
         
-    FROM md_pendaftaran_layanan l
+    FROM demo_visit_services l
     
     -- JOIN ke Transaksi
-    JOIN md_pendaftaran p ON l.kode = p.no_registrasi
+    JOIN demo_visits p ON l.kode = p.no_registrasi
     
     -- JOIN ke Master Layanan
-    LEFT JOIN md_layananklinik m ON l.kodeLayanan = m.kode
+    LEFT JOIN demo_services m ON l.kodeLayanan = m.kode
     
     -- JOIN ke Master Kategori (Ambil Target di sini)
-    LEFT JOIN md_kategoriklinik k ON m.id_kategori = k.id_kategoriKlinik
+    LEFT JOIN demo_service_categories k ON m.id_kategori = k.id_kategoriKlinik
     
     WHERE p.waktu_daftar IS NOT NULL
     
@@ -196,7 +196,7 @@ def get_ikm_responden_query():
     """
     return """
     SELECT *
-    FROM an_ikm_responden
+    FROM demo_satisfaction_respondents
     ORDER BY tanggal;
     """
 
@@ -210,7 +210,7 @@ def get_ikm_unsur_query():
         unsur,
         total_nilai,
         rata_rata
-    FROM an_ikm_unsur
+    FROM demo_satisfaction_elements
     ORDER BY CAST(SUBSTRING(unsur,2) AS UNSIGNED);
     """
 
@@ -226,7 +226,7 @@ def get_ikm_summary_query():
         ikm_konversi,
         mutu,
         kategori
-    FROM an_ikm_summary
+    FROM demo_satisfaction_summary
     ORDER BY id DESC
     LIMIT 1;
     """
@@ -245,7 +245,7 @@ def get_ikm_layanan_query():
              Q9+Q10+Q11+Q12+Q13+Q14+Q15+Q16)
             /16*25
         ),2) AS ikm
-    FROM an_ikm_responden
+    FROM demo_satisfaction_respondents
     GROUP BY jenis_layanan
     ORDER BY ikm DESC;
     """
@@ -259,7 +259,7 @@ def get_ikm_ranking_query():
         unsur,
         total_nilai,
         rata_rata
-    FROM an_ikm_unsur
+    FROM demo_satisfaction_elements
     ORDER BY rata_rata DESC;
     """
 
@@ -277,7 +277,7 @@ def get_ikm_trend_query():
                 /16*25
             ),
         2) AS ikm
-    FROM an_ikm_responden
+    FROM demo_satisfaction_respondents
     GROUP BY bulan
     ORDER BY bulan;
     """
@@ -288,7 +288,7 @@ def get_ikm_trend_query():
 #         payment_type AS metode_bayar, 
 #         COUNT(no_registrasi) as total_transaksi,
 #         SUM(total) as total_pendapatan
-#     FROM md_pendaftaran
+#     FROM demo_visits
 #     WHERE total IS NOT NULL
 #     GROUP BY payment_type;
 #     """

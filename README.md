@@ -177,16 +177,16 @@ python scripts/generate_synthetic_data.py
 ```text
 [INFO] Memulai pembuatan dataset sintetis demo...
 [SUCCESS] Berhasil membuat database demo di: .../data/demo_klinik.db
-   - md_user: 2 baris
-   - md_kategoriklinik: 6 baris
-   - md_layananklinik: 18 baris
-   - md_pendaftaran: 4,264 baris
-   - md_pendaftaran_layanan: 5,098 baris
-   - md_pendaftaran_icd: 4,264 baris
-   - md_pendaftaran_resep: 4,126 baris
-   - an_ikm_responden: 420 baris
-   - an_ikm_unsur: 16 baris
-   - an_ikm_summary: 1 baris
+   - demo_users: 2 baris
+   - demo_service_categories: 6 baris
+   - demo_services: 18 baris
+   - demo_visits: 4,264 baris
+   - demo_visit_services: 5,098 baris
+   - demo_visit_diagnoses: 4,264 baris
+   - demo_prescriptions: 4,126 baris
+   - demo_satisfaction_respondents: 420 baris
+   - demo_satisfaction_elements: 16 baris
+   - demo_satisfaction_summary: 1 baris
 ```
 
 ### 7. Launch the Application

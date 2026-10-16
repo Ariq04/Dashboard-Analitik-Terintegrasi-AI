@@ -34,7 +34,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def login(email, password):
     """
-    Autentikasi pengguna demo dari tabel md_user.
+    Autentikasi pengguna demo dari tabel demo_users.
     """
     if not email or not password:
         return False
@@ -47,7 +47,7 @@ def login(email, password):
         nama_lengkap,
         email,
         password
-    FROM md_user
+    FROM demo_users
     WHERE email=%s
     LIMIT 1
     """

@@ -35,16 +35,16 @@ class TestSyntheticDataIntegrity(unittest.TestCase):
     def test_1_tables_exist(self):
         """Memverifikasi bahwa seluruh tabel yang dibutuhkan dashboard tersedia."""
         expected_tables = {
-            "md_user",
-            "md_kategoriklinik",
-            "md_layananklinik",
-            "md_pendaftaran",
-            "md_pendaftaran_layanan",
-            "md_pendaftaran_icd",
-            "md_pendaftaran_resep",
-            "an_ikm_responden",
-            "an_ikm_unsur",
-            "an_ikm_summary",
+            "demo_users",
+            "demo_service_categories",
+            "demo_services",
+            "demo_visits",
+            "demo_visit_services",
+            "demo_visit_diagnoses",
+            "demo_prescriptions",
+            "demo_satisfaction_respondents",
+            "demo_satisfaction_elements",
+            "demo_satisfaction_summary",
         }
         cursor = self.conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -55,14 +55,14 @@ class TestSyntheticDataIntegrity(unittest.TestCase):
     def test_2_required_columns_exist(self):
         """Memverifikasi seluruh kolom yang dibutuhkan oleh queries.py dan auth.py."""
         required_schema = {
-            "md_user": ["id_user", "nama_lengkap", "email", "password"],
-            "md_pendaftaran": ["no_registrasi", "no_rm", "waktu_daftar", "total", "payment_type"],
-            "md_kategoriklinik": ["id_kategoriKlinik", "kategoriKlinik", "target"],
-            "md_layananklinik": ["kode", "nama_layanan", "id_kategori"],
-            "md_pendaftaran_layanan": ["id", "kode", "kodeLayanan", "layanan", "subtotal"],
-            "md_pendaftaran_icd": ["id", "kode", "penyakit"],
-            "md_pendaftaran_resep": ["id", "kode", "nama_produk", "qty", "subtotal"],
-            "an_ikm_responden": ["id", "tanggal", "jenis_layanan", "q1", "q16"],
+            "demo_users": ["id_user", "nama_lengkap", "email", "password"],
+            "demo_visits": ["no_registrasi", "no_rm", "waktu_daftar", "total", "payment_type"],
+            "demo_service_categories": ["id_kategoriKlinik", "kategoriKlinik", "target"],
+            "demo_services": ["kode", "nama_layanan", "id_kategori"],
+            "demo_visit_services": ["id", "kode", "kodeLayanan", "layanan", "subtotal"],
+            "demo_visit_diagnoses": ["id", "kode", "penyakit"],
+            "demo_prescriptions": ["id", "kode", "nama_produk", "qty", "subtotal"],
+            "demo_satisfaction_respondents": ["id", "tanggal", "jenis_layanan", "q1", "q16"],
         }
         cursor = self.conn.cursor()
         for table, cols in required_schema.items():
@@ -82,26 +82,26 @@ class TestSyntheticDataIntegrity(unittest.TestCase):
         """Memverifikasi integritas Primary Key dan constraint keunikan."""
         cursor = self.conn.cursor()
         # Cek duplikat no_registrasi
-        cursor.execute("SELECT no_registrasi, COUNT(*) FROM md_pendaftaran GROUP BY no_registrasi HAVING COUNT(*) > 1;")
+        cursor.execute("SELECT no_registrasi, COUNT(*) FROM demo_visits GROUP BY no_registrasi HAVING COUNT(*) > 1;")
         self.assertEqual(len(cursor.fetchall()), 0, "Ditemukan no_registrasi duplikat")
 
         # Cek duplikat email user
-        cursor.execute("SELECT email, COUNT(*) FROM md_user GROUP BY email HAVING COUNT(*) > 1;")
+        cursor.execute("SELECT email, COUNT(*) FROM demo_users GROUP BY email HAVING COUNT(*) > 1;")
         self.assertEqual(len(cursor.fetchall()), 0, "Ditemukan email user duplikat")
 
     def test_5_sufficient_volume_for_charts(self):
         """Memverifikasi kecukupan volume data sintetis untuk visualisasi dashboard."""
         cursor = self.conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM md_pendaftaran;")
+        cursor.execute("SELECT COUNT(*) FROM demo_visits;")
         pendaftaran_count = cursor.fetchone()[0]
         self.assertGreaterEqual(pendaftaran_count, 3000, "Volume pendaftaran tidak cukup untuk tren tahunan")
 
-        cursor.execute("SELECT COUNT(*) FROM an_ikm_responden;")
+        cursor.execute("SELECT COUNT(*) FROM demo_satisfaction_respondents;")
         ikm_count = cursor.fetchone()[0]
         self.assertGreaterEqual(ikm_count, 300, "Volume responden IKM tidak cukup untuk analisis unsur")
 
         # Rentang bulan transaksi minimal 24 bulan
-        cursor.execute("SELECT COUNT(DISTINCT SUBSTR(waktu_daftar, 1, 7)) FROM md_pendaftaran;")
+        cursor.execute("SELECT COUNT(DISTINCT SUBSTR(waktu_daftar, 1, 7)) FROM demo_visits;")
         months_count = cursor.fetchone()[0]
         self.assertGreaterEqual(months_count, 24, "Jumlah bulan tidak cukup untuk analisis tren MoM")
 
@@ -111,20 +111,20 @@ class TestSyntheticDataIntegrity(unittest.TestCase):
         cursor.execute("""
         SELECT 
             AVG((q1+q2+q3+q4+q5+q6+q7+q8+q9+q10+q11+q12+q13+q14+q15+q16) / 16.0 * 25.0)
-        FROM an_ikm_responden;
+        FROM demo_satisfaction_respondents;
         """)
         calculated_ikm = cursor.fetchone()[0]
 
-        cursor.execute("SELECT ikm_konversi FROM an_ikm_summary LIMIT 1;")
+        cursor.execute("SELECT ikm_konversi FROM demo_satisfaction_summary LIMIT 1;")
         summary_ikm = cursor.fetchone()[0]
 
         self.assertAlmostEqual(calculated_ikm, summary_ikm, places=1, msg="Nilai IKM konversi tidak konsisten")
 
     def test_7_revenue_aggregation_match(self):
-        """Memverifikasi bahwa total transaksi di md_pendaftaran sama dengan sum(layanan + resep)."""
-        df_reg = pd.read_sql("SELECT no_registrasi, total FROM md_pendaftaran LIMIT 200;", self.conn)
-        df_lay = pd.read_sql("SELECT kode, SUM(subtotal) as tot_lay FROM md_pendaftaran_layanan GROUP BY kode;", self.conn)
-        df_rx = pd.read_sql("SELECT kode, SUM(subtotal) as tot_rx FROM md_pendaftaran_resep GROUP BY kode;", self.conn)
+        """Memverifikasi bahwa total transaksi di demo_visits sama dengan sum(layanan + resep)."""
+        df_reg = pd.read_sql("SELECT no_registrasi, total FROM demo_visits LIMIT 200;", self.conn)
+        df_lay = pd.read_sql("SELECT kode, SUM(subtotal) as tot_lay FROM demo_visit_services GROUP BY kode;", self.conn)
+        df_rx = pd.read_sql("SELECT kode, SUM(subtotal) as tot_rx FROM demo_prescriptions GROUP BY kode;", self.conn)
 
         merged = df_reg.merge(df_lay, left_on='no_registrasi', right_on='kode', how='left').fillna(0)
         merged = merged.merge(df_rx, left_on='no_registrasi', right_on='kode', how='left').fillna(0)
@@ -149,8 +149,8 @@ class TestSyntheticDataIntegrity(unittest.TestCase):
             # Verifikasi hash data baris registrasi pertama
             c1 = sqlite3.connect(tmp1_path)
             c2 = sqlite3.connect(tmp2_path)
-            rows1 = c1.execute("SELECT * FROM md_pendaftaran ORDER BY no_registrasi LIMIT 50;").fetchall()
-            rows2 = c2.execute("SELECT * FROM md_pendaftaran ORDER BY no_registrasi LIMIT 50;").fetchall()
+            rows1 = c1.execute("SELECT * FROM demo_visits ORDER BY no_registrasi LIMIT 50;").fetchall()
+            rows2 = c2.execute("SELECT * FROM demo_visits ORDER BY no_registrasi LIMIT 50;").fetchall()
             c1.close()
             c2.close()
 
