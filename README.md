@@ -4,11 +4,10 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.40%2B-red.svg)](https://streamlit.io/)
 [![Plotly](https://img.shields.io/badge/Plotly-5.0%2B-purple.svg)](https://plotly.com/)
 [![SQLite](https://img.shields.io/badge/Database-SQLite%203-lightgrey.svg)](https://www.sqlite.org/)
-[![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini%203.5-orange.svg)](https://aistudio.google.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini%203.5%20Flash%20Lite-orange.svg)](https://aistudio.google.com/)
 [![Data: 100% Synthetic](https://img.shields.io/badge/Data-100%25%20Synthetic-teal.svg)](#-synthetic-data--portfolio-disclaimer)
 
-An end-to-end Healthcare Analytics and Business Intelligence Dashboard featuring interactive KPI monitoring, operational workload heatmaps, standardized Patient Satisfaction Index (IKM Permenpan RB No. 14/2017) tracking, and an integrated **AI Business Consultant** powered by Google Gemini.
+An end-to-end Healthcare Analytics and Business Intelligence Dashboard featuring interactive KPI monitoring, operational workload heatmaps, standardized Patient Satisfaction Index (IKM Permenpan RB No. 14/2017) tracking, and an integrated **AI Business Consultant** powered by Google Gemini (`gemini-3.5-flash-lite`).
 
 Designed as an enterprise-grade portfolio demonstrating applied Data Analysis, UI/UX storytelling, database querying, and secure LLM integration for business decision-making.
 
@@ -41,13 +40,13 @@ This dashboard solves these challenges by combining interactive visual analytics
 ## ✨ Key Features & Dashboard Modules
 
 ### 1. Executive Overview
-- **High-Level KPIs:** Real-time summary cards for Total Revenue (Rp 3.67B), Total Visits (4,264 visits), Average Revenue per Visit, and Global Patient Satisfaction Index (84.04 / Grade B - "Baik").
+- **High-Level KPIs:** Real-time summary cards for Total Revenue (Rp 3.68B / Rp 3,677,363,000), Total Visits (4,264 visits), Average Revenue per Visit, and Global Patient Satisfaction Index (84.04 / Grade B - "Baik").
 - **Monthly Revenue Trajectory:** Multi-year trend analysis (2023–2025) with dynamic MoM growth indicators.
 - **Revenue Distribution:** Breakdown comparing Clinical Services versus Pharmacy / Prescription revenue streams.
 - **Top Growth Drivers:** Ranking of top revenue-generating clinical services.
 
 ### 2. Service & Product Performance (Performance Monitor)
-- **Target vs. Realization Tracking:** Dynamic comparison of monthly budget targets against actual revenue across 7 key clinic categories (Poli Umum, Poli Gigi, Laboratorium, Farmasi, Radiologi, Tindakan Medis, Kebidanan & KIA).
+- **Target vs. Realization Tracking:** Dynamic comparison of monthly budget targets against actual revenue across 6 key clinic service categories (Poli Umum, Poli Gigi & Mulut, Tindakan Medis & Bedah Minor, Kebidanan & KIA, Laboratorium Klinis, and Fisioterapi & Rehab).
 - **Achievement Status:** Color-coded achievement percentages (Achieved ≥ 100% vs. Below Target).
 - **Category Volume & Contribution:** Visualizing high-margin service clusters versus high-volume transactions.
 
@@ -64,7 +63,7 @@ This dashboard solves these challenges by combining interactive visual analytics
 - **Respondent Demographics:** Breakdown of feedback across service units, age cohorts, and gender.
 
 ### 5. AI Business Consultant
-- **Executive Advisory:** Translates complex data into structured executive summaries, root cause diagnoses, and operational recommendations.
+- **Executive Advisory:** Powered by Google Gemini (`gemini-3.5-flash-lite`), translates complex data into structured executive summaries, root cause diagnoses, and operational recommendations.
 - **Preset Quick Prompts:** Single-click exploration for Revenue trends, Underperforming units, ICD disease trends, and IKM improvement strategies.
 - **Grounded Context:** AI prompts are augmented with verified, real-time aggregated metrics from the local database.
 - **Security Guardrails:** Enforces input sanitization, rejects destructive prompt injection attempts, and operates purely via text reasoning (read-only).
@@ -100,7 +99,7 @@ This dashboard solves these challenges by combining interactive visual analytics
                │                                │ API Prompt
                ▼                                ▼
 ┌──────────────────────────────┐ ┌──────────────────────────────┐
-│     Local SQLite Database    │ │   Google Gemini 3.5 Flash    │
+│     Local SQLite Database    │ │ Google Gemini 3.5 Flash Lite │
 │    (data/demo_klinik.db)     │ │        (Free-Tier API)       │
 └──────────────────────────────┘ └──────────────────────────────┘
 ```
@@ -131,8 +130,8 @@ This dashboard solves these challenges by combining interactive visual analytics
 
 ### 2. Clone the Repository
 ```bash
-git clone https://github.com/your-username/clinic-analytics-dashboard.git
-cd clinic-analytics-dashboard
+git clone https://github.com/Ariq04/Dashboard-Analitik-Terintegrasi-AI.git
+cd Dashboard-Analitik-Terintegrasi-AI
 ```
 
 ### 3. Create and Activate Virtual Environment
@@ -280,4 +279,4 @@ python -m unittest discover -s tests -v
 
 ## 📄 License & Attribution
 
-This project is released under the [MIT License](LICENSE). Built for educational, analytical demonstration, and portfolio presentation purposes.
+This project is developed and maintained by **Ariq04** for portfolio, educational, and analytical demonstration purposes. All rights reserved. For reuse, adaptation, or business inquiries, please contact the author or provide proper attribution.
